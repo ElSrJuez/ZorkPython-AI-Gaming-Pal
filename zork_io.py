@@ -7,10 +7,12 @@ import inspect
 _PRINT_CACHE = []
 
 def zork_input(prompt=''):
-    user_input = input(prompt)
     # Log the command as a game action
-    game_log(user_input)
     message_collection = collect_printed_messages()
+    # collect only the message text
+    messages_only = [msg for msg, caller in message_collection]
+    user_input = input(prompt)
+    game_log(user_input)
     # Here you can add any processing you want to do with user_input
     return user_input
 
@@ -29,18 +31,6 @@ def zork_print(message=""):
 
     _PRINT_CACHE.append((message, caller_name))
     system_log(f"Printed message: {message} (from {caller_name})")
-    
-
-def get_caller_name():
-    """
-    Returns the name of the function that called this function.
-    """
-    # inspect.stack() returns a list of frame records.
-    # [0] is the current function (get_caller_name).
-    # [1] is the function that called the current function (the caller).
-    # .function (Python 3.5+ named tuple attribute) or [3] (tuple index in Python 2)
-    # gets the function/method name from the frame record.
-
     
 def collect_printed_messages():
     """
