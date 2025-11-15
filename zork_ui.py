@@ -45,9 +45,29 @@ class RichZorkUI:
     def set_prompt(self, text: str):
         """Update the bottom prompt bar text."""
         self.prompt_text = text
-        # Ensure prompt shows immediately if live started
         if hasattr(self, "live"):
             self.live.update(self.render())
+
+    def read_prompt(self, prompt: str = "") -> str:
+        """Read a line character-by-character and show it live inside the prompt panel."""
+        import sys, msvcrt  # Windows only; adjust for Unix if needed
+        self.set_prompt(prompt)
+        buffer: list[str] = []
+        while True:
+            ch = msvcrt.getwch()
+            if ch in ("\r", "\n"):
+                line = "".join(buffer)
+                self.set_prompt("")
+                self.console.print()  # move cursor to next line
+                return line
+            elif ch in ("\b", "\x7f"):
+                if buffer:
+                    buffer.pop()
+            else:
+                buffer.append(ch)
+            # update prompt display
+            self.set_prompt(prompt + "".join(buffer))
+
 
     def stop(self):
         self.live.stop()

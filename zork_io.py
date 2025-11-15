@@ -1,5 +1,15 @@
 from zork_logging import game_log, system_log, game_log_json
 import inspect
+from zork_ui import RichZorkUI
+
+_ui: RichZorkUI | None = None
+
+def _ui_instance():
+    global _ui
+    if _ui is None:
+        _ui = RichZorkUI()
+        _ui.start()
+    return _ui
 
 # redefine input( as zork_input( which is a wrapper that can be used to process input text before passing it to zork
 
@@ -11,12 +21,15 @@ def zork_input(prompt=''):
     message_collection = collect_printed_messages()
     # collect only the message text
     messages_only = [msg for msg, caller in message_collection]
-    user_input = input(prompt)
+    ui = _ui_instance()
+    user_input = ui.read_prompt(prompt)
     game_log(user_input)
     # Here you can add any processing you want to do with user_input
     return user_input
 
 def zork_print(message=""):
+    ui = _ui_instance()
+    ui.append_zork(message)
     print(message)
     # log printed messages if needed
     
