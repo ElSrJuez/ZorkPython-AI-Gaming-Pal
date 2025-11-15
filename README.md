@@ -81,6 +81,18 @@ Key `config.json` fields:
 
 ---
 
+## TODO
+
+1. **Eliminate prompt flicker** – optimise Rich `Live` updates.
+2. **Filter banner noise** – exclude Zork’s welcome/header lines from LLM prompts.
+3. **Command skip-list** – maintain commands that shouldn’t trigger AI calls (e.g. `save`, `restore`, `quit`).
+4. **Second-stage narration** – feed the first-instance structured JSON so that the narration is an experience enhancing second-shot narration.
+5. **Inventory helper** – AI suggests useful items or combos based on current state.
+6. **Emergency auto-rescue** – when confidence is high, AI may issue an occasional lifesaving command on behalf of the player.
+7. **Voice Narration** - Implement TTS (Piper, other) narration and optionally hiding the AI Box
+
+---
+
 ## Credits & License
 
 *Original Zork gameplay and text © Infocom / Activision.*
