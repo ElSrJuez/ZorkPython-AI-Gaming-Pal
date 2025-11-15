@@ -85,7 +85,8 @@ Key `config.json` fields:
 
 1. **Eliminate prompt flicker** – optimise Rich `Live` updates.
 2. **Filter banner noise** – exclude Zork’s welcome/header lines from LLM prompts.
-3. **JSON/Narration Not workging** - AI output is only supposed to display the narration field and hide all others
+3. ~~**JSON/Narration Not workging** - AI output is only supposed to display the narration field and hide all others~~ **(Fixed)** – `completions.py` now strips fences/malformed JSON, extracts only the `narration` value when `stream_only_narration` is true, and prevents other fields from reaching the Rich pane.
+
 
 ---
 
