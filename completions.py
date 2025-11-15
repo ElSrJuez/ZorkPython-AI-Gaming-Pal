@@ -25,6 +25,13 @@ SYSTEM_PROMPT: str = CFG["system_prompt"]
 USER_TMPL: str = CFG["user_prompt_template"]
 MAX_LOG_LINES = 40  # lines to include from game log
 
+# ai.jsonl path and reset per session, using configured log path
+BASE_DIR = Path(__file__).parent
+LOG_DIR = BASE_DIR / CFG["input_jsonl_path"].rstrip("\\/")
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+AI_LOG_PATH = LOG_DIR / "ai.jsonl"
+# clear previous messages
+AI_LOG_PATH.write_text("", encoding="utf-8")
 
 def build_messages(recent_lines: List[str]) -> List[Dict[str, str]]:
     """Return list[dict] in OpenAI chat format from recent log lines."""
@@ -39,6 +46,9 @@ def build_messages(recent_lines: List[str]) -> List[Dict[str, str]]:
 def stream_to_ui(ui, recent_lines: List[str]):
     """Generate an AI assistant response and stream it to the UI pane."""
     messages = build_messages(recent_lines)
+    # Log the exact payload sent to AI
+    with AI_LOG_PATH.open("a", encoding="utf-8") as _log:
+        _log.write(json.dumps(messages) + "\n")
 
     stream = client.chat.completions.create(  # type: ignore[arg-type]
         model=manager.get_model_info(alias).id,  # type: ignore[attr-defined]

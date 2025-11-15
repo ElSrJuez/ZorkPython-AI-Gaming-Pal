@@ -53,28 +53,22 @@ class RichZorkUI:
         return "\n".join(result_lines)
 
     def render(self):
-        # Calculate available height
+        # Calculate available height accounting for prompt and panel borders
         prompt_height = 4
-        body_height = self.console.size.height - prompt_height - 2  # -2 for panel borders
-        
-        # Calculate approximate panel widths based on ratio (2:3)
+        body_height = self.console.size.height - prompt_height - 2  # two border lines
+
+        # Determine column widths (40% / 60%)
         total_width = self.console.size.width
-        left_width = int(total_width * 0.4)  # 2/(2+3) = 0.4
-        right_width = int(total_width * 0.6)  # 3/(2+3) = 0.6
-        
-        # Get visible lines accounting for wrapping
+        left_width = int(total_width * 0.4)
+        right_width = total_width - left_width - 1  # adjust for divider
+
+        # Get wrapped, scrollable text for each pane
         left_text = self._get_renderable_lines(self.zork_lines, left_width, body_height)
         right_text = self._get_renderable_lines(self.ai_lines, right_width, body_height)
-        
-        self.layout["left"].update(
-            Panel(left_text, title="Zork Output", border_style="green")
-        )
-        self.layout["right"].update(
-            Panel(right_text, title="AI Output", border_style="cyan")
-        )
-        self.layout["prompt"].update(
-            Panel(self.prompt_text, title="Prompt", border_style="magenta")
-        )
+
+        self.layout["left"].update(Panel(left_text, title="Zork Output", border_style="green"))
+        self.layout["right"].update(Panel(right_text, title="AI Output", border_style="cyan"))
+        self.layout["prompt"].update(Panel(self.prompt_text, title="Prompt", border_style="magenta"))
         return self.layout
 
     def start(self):
