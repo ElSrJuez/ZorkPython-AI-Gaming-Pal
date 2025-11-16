@@ -11,6 +11,7 @@ from __future__ import annotations
 import tempfile
 import wave
 import winsound
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -87,31 +88,31 @@ def init_voice(model_path: str | Path | None = None, *, use_cuda: bool = False) 
     _VOICE = PiperVoice.load(str(path), use_cuda=use_cuda)
 
 
-def speak(text: str) -> None:
-    """Synthesize *text* and play it synchronously."""
-    if _VOICE is None:
-        init_voice()  # auto-load for convenience
-    assert _VOICE is not None  # mypy guard
-
-    # Render to a temporary WAV then play with winsound
-    with tempfile.NamedTemporaryFile(suffix=".wav", dir=TMP_DIR, delete=False) as tmp:
-        tmp_path = Path(tmp.name)
+def _play_wav_async(path: Path) -> None:
+    """Play WAV file asynchronously and delete afterwards."""
     try:
-        with wave.open(str(tmp_path), "wb") as wav_file:
-            system_log("Synthesizing voice …")
-            _VOICE.synthesize_wav(text, wav_file, syn_config=_CONFIG)
-            system_log("Synthesis complete")
-        winsound.PlaySound(str(tmp_path), winsound.SND_FILENAME)
+        winsound.PlaySound(str(path), winsound.SND_FILENAME | getattr(winsound, "SND_ASYNC", 0))
     finally:
         try:
-            tmp_path.unlink(missing_ok=True)  # Python ≥3.8
-        except TypeError:
-            # older Pythons
-            from os import remove
-            try:
-                remove(tmp_path)
-            except FileNotFoundError:
-                pass
+            path.unlink(missing_ok=True)
+        except FileNotFoundError:
+            pass
+
+
+def speak(text: str) -> None:
+    """Synthesize *text* and play it in the background (non-blocking)."""
+    if _VOICE is None:
+        init_voice()
+    assert _VOICE is not None
+
+    with tempfile.NamedTemporaryFile(suffix=".wav", dir=TMP_DIR, delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+    with wave.open(str(tmp_path), "wb") as wav_file:
+        system_log("Synthesizing voice …")
+        _VOICE.synthesize_wav(text, wav_file, syn_config=_CONFIG)
+        system_log("Synthesis complete")
+
+    threading.Thread(target=_play_wav_async, args=(tmp_path,), daemon=True).start()
 
 
 def stream(text: str):
